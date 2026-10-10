@@ -114,6 +114,35 @@ table {
   margin-top: 16px;
 }
 
+.assistant-messages {
+  border: 1px solid #d8e0e8;
+  border-radius: 6px;
+  padding: 10px;
+  min-height: 120px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fafcfe;
+}
+
+.assistant-message {
+  margin: 0 0 8px;
+}
+
+.assistant-message.user {
+  color: var(--text);
+}
+
+.assistant-message.bot {
+  color: var(--muted);
+}
+
+.assistant-controls {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 th,
 td {
   border: 1px solid #d8e0e8;

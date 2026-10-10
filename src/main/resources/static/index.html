@@ -37,18 +37,114 @@
           <label for="message">Message</label>
           <textarea id="message" name="message" maxlength="2000" required></textarea>
 
+          <label for="humanAnswer" id="humanPrompt">Human Verification</label>
+          <input id="humanAnswer" name="humanAnswer" type="text" maxlength="50" required />
+          <input id="humanToken" name="humanToken" type="hidden" />
+
           <button type="submit">Send Message</button>
           <p id="form-status" class="status" aria-live="polite"></p>
         </form>
+      </section>
+
+      <section class="card">
+        <h2>Care Assistant</h2>
+        <p>Ask a question about services, scheduling, or our FAQ.</p>
+        <div id="assistant-messages" class="assistant-messages" aria-live="polite"></div>
+        <div class="assistant-controls">
+          <input id="assistant-input" type="text" maxlength="300" placeholder="Type your question..." />
+          <button id="assistant-send" type="button">Ask</button>
+        </div>
       </section>
     </main>
 
     <script>
       const form = document.getElementById("contact-form");
       const status = document.getElementById("form-status");
+      const humanPrompt = document.getElementById("humanPrompt");
+      const humanToken = document.getElementById("humanToken");
+      const humanAnswer = document.getElementById("humanAnswer");
+      const assistantMessages = document.getElementById("assistant-messages");
+      const assistantInput = document.getElementById("assistant-input");
+      const assistantSend = document.getElementById("assistant-send");
+
+      const assistantKnowledge = [
+        {
+          keywords: ["respond", "response", "call back", "follow up"],
+          answer: "Most requests are answered within one business day.",
+        },
+        {
+          keywords: ["custom", "plan", "care plan"],
+          answer: "Yes, we create custom care plans based on your needs and family preferences.",
+        },
+        {
+          keywords: ["minimum", "hours"],
+          answer: "There is no fixed minimum. We review flexible care-hour options during consultation.",
+        },
+        {
+          keywords: ["schedule", "scheduling", "appointment"],
+          answer: "Use the scheduling page or the contact form and we will help coordinate a consultation.",
+        },
+        {
+          keywords: ["service", "services"],
+          answer: "We provide companionship, personal care, respite support, and custom in-home care services.",
+        },
+      ];
+
+      function addAssistantMessage(text, role) {
+        const message = document.createElement("p");
+        message.className = `assistant-message ${role}`;
+        message.textContent = text;
+        assistantMessages.appendChild(message);
+        assistantMessages.scrollTop = assistantMessages.scrollHeight;
+      }
+
+      function findAssistantAnswer(question) {
+        const normalizedQuestion = question.toLowerCase();
+        const match = assistantKnowledge.find((entry) =>
+          entry.keywords.some((keyword) => normalizedQuestion.includes(keyword))
+        );
+        return (
+          match?.answer ||
+          "I can help with FAQ topics, scheduling, and service questions. You can also submit the contact form for direct support."
+        );
+      }
+
+      function handleAssistantSubmit() {
+        const question = assistantInput.value.trim();
+        if (!question) return;
+        addAssistantMessage(`You: ${question}`, "user");
+        addAssistantMessage(`Assistant: ${findAssistantAnswer(question)}`, "bot");
+        assistantInput.value = "";
+      }
+
+      assistantSend.addEventListener("click", handleAssistantSubmit);
+      assistantInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          handleAssistantSubmit();
+        }
+      });
+
+      async function loadHumanChallenge() {
+        try {
+          const response = await fetch("/api/human-verification/challenge");
+          const data = await response.json();
+          if (!response.ok || !data.token || !data.prompt) {
+            throw new Error("Could not load human verification.");
+          }
+          humanPrompt.textContent = `Human Verification: ${data.prompt}`;
+          humanToken.value = data.token;
+        } catch (error) {
+          humanPrompt.textContent = "Human Verification: Unable to load challenge. Refresh and try again.";
+          status.textContent = "Unable to load human verification. Please refresh the page.";
+          status.className = "status error";
+        }
+      }
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
+        if (!form.reportValidity()) return;
+
         status.textContent = "Sending...";
         status.className = "status";
 
@@ -57,6 +153,8 @@
           phone: form.phone.value.trim(),
           email: form.email.value.trim(),
           message: form.message.value.trim(),
+          humanVerificationToken: humanToken.value.trim(),
+          humanVerificationAnswer: humanAnswer.value.trim(),
         };
 
         try {
@@ -70,17 +168,22 @@
 
           const data = await response.json().catch(() => ({}));
           if (!response.ok) {
-            throw new Error(data.message || "Unable to submit the form.");
+            throw new Error(data.message || data.error || "Unable to submit the form.");
           }
 
           status.textContent = data.message || "Thanks, your request was submitted.";
           status.className = "status success";
           form.reset();
+          await loadHumanChallenge();
         } catch (error) {
           status.textContent = error.message || "Unable to submit the form.";
           status.className = "status error";
+          await loadHumanChallenge();
         }
       });
+
+      addAssistantMessage("Assistant: Hi! Ask me anything about our services or FAQs.", "bot");
+      loadHumanChallenge();
     </script>
   </body>
 </html>
