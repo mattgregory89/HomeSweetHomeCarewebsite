@@ -880,3 +880,13 @@ footer p,footer>span {
     transform:none;
   }
 }
+
+/* Shared landing-page additions from the contact and FAQ flow. */
+#verification-refresh { border: 0; background: transparent; padding: .5rem 0; cursor: pointer; font: inherit; }
+#verification-status { font-size: .85rem; }
+.assistant-section { max-width: 900px; }
+.assistant-messages { padding: 1rem; border: 1px solid var(--sage); border-radius: 12px; max-height: 240px; overflow-y: auto; margin: 1rem 0; }
+.assistant-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.assistant-controls input { flex: 1; min-width: 180px; padding: .8rem; border: 1px solid var(--sage); border-radius: 8px; font: inherit; }
+.assistant-controls button { padding: .8rem 1.4rem; border: 0; border-radius: 8px; background: var(--navy); color: white; font: inherit; cursor: pointer; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 1rem; }
