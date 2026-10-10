@@ -69,3 +69,8 @@ Set these environment variables for production:
 - `HUMAN_VERIFICATION_SECRET`
 
 If SMTP is unavailable, submissions are still saved and the API reports that confirmation email sending failed.
+
+## Live deployment safety notes
+
+- Set strong values for `ADMIN_API_KEY` and `HUMAN_VERIFICATION_SECRET` before exposing the site publicly.
+- API error responses are normalized to JSON messages so malformed/invalid requests do not surface unstable server errors to clients.
