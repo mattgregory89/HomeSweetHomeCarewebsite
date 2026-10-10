@@ -1,89 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Home Sweet Home Care</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        background: #f7f9fb;
-        color: #1d2a35;
-      }
-
-      main {
-        max-width: 540px;
-        margin: 48px auto;
-        padding: 24px;
-        background: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-      }
-
-      h1 {
-        margin-top: 0;
-      }
-
-      p {
-        margin-bottom: 20px;
-      }
-
-      form {
-        display: grid;
-        gap: 12px;
-      }
-
-      label {
-        font-weight: 600;
-      }
-
-      input,
-      textarea,
-      button {
-        font: inherit;
-        padding: 10px;
-        border: 1px solid #ccd3db;
-        border-radius: 6px;
-      }
-
-      textarea {
-        min-height: 120px;
-        resize: vertical;
-      }
-
-      button {
-        background: #1f6fb2;
-        color: #ffffff;
-        border: none;
-        cursor: pointer;
-      }
-
-      button:hover {
-        background: #17588d;
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <h1>Home Sweet Home Care</h1>
-      <p>Please share your details and we will contact you shortly.</p>
-
-      <form>
-        <label for="name">Name</label>
-        <input id="name" name="name" type="text" required />
-
-        <label for="phone">Phone Number</label>
-        <input id="phone" name="phone" type="tel" required />
-
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" required />
-
-        <label for="message">Message</label>
-        <textarea id="message" name="message" maxlength="1000" required></textarea>
-
-        <button type="submit">Send Message</button>
-      </form>
-    </main>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#083e59" />
+  <meta name="description" content="Home Sweet Home Care Delaware. Start a conversation about thoughtful, personal support for your loved one at home." />
+  <title>Home Sweet Home Care | Delaware</title>
+  <link rel="icon" href="assets/home-sweet-home-logo.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="announcement">Rooted in Delaware. <span>Centered on you.</span> <span class="tiny-heart" aria-hidden="true">♡</span></div>
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="Home Sweet Home Care home"><img src="assets/home-sweet-home-logo.png" alt="" width="64" height="64" /><span>Home Sweet Home <b>CARE · DELAWARE</b></span></a>
+    <button class="menu-toggle" aria-expanded="false" aria-controls="navigation">Menu <span aria-hidden="true">☰</span></button>
+    <nav id="navigation" aria-label="Main navigation"><a href="#care">Our care</a><a href="#approach">Our approach</a><a href="#questions">Questions</a><a class="button button-small" href="#contact">Let’s talk care <span aria-hidden="true">↗</span></a></nav>
+  </header>
+  <main id="main">
+    <section class="hero section-wrap">
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span> A LITTLE HELP. A LOT OF HEART.</p>
+        <h1>There’s no place<br />like <em>home.</em></h1>
+        <p class="hero-description">Familiar comforts. Meaningful connections. A helping hand when it matters. Let’s make everyday life at home feel a little easier.</p>
+        <div class="hero-actions"><a class="button" href="#contact">Find care for your loved one <span aria-hidden="true">↗</span></a><a class="text-link" href="#care">Explore our care <span aria-hidden="true">↓</span></a></div>
+        <div class="hero-note"><span class="note-icon" aria-hidden="true">♡</span><p>For the people you love.<br /><strong>In the place they love.</strong></p></div>
+      </div>
+      <div class="hero-art">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <span class="art-label">COMFORT BEGINS HERE</span>
+        <img class="hero-logo" src="assets/home-sweet-home-logo.png" alt="Home Sweet Home Care Delaware — a navy home surrounded by a golden heart and sage leaves" width="1254" height="1254" fetchpriority="high" />
+        <div class="art-caption"><span aria-hidden="true">⌂</span><div>A familiar place.<br /><b>A personal kind of care.</b></div></div>
+        <span class="art-flower" aria-hidden="true">✳</span>
+      </div>
+    </section>
+    <div class="values-strip"><span>Compassion in every connection</span><i aria-hidden="true">✦</i><span>Respect for your independence</span><i aria-hidden="true">✦</i><span>Home at the heart of it all</span></div>
+    <section id="care" class="care-section section-wrap section-space">
+      <div class="section-heading reveal"><div><p class="eyebrow">EVERYDAY SUPPORT, THOUGHTFULLY GIVEN</p><h2>A little support can<br />make a <em>beautiful difference.</em></h2></div><p>Every person’s day looks different. Tell us where a helping hand could make yours better, and we’ll talk through the possibilities together.</p></div>
+      <div class="care-grid">
+        <article class="care-card reveal"><span class="card-icon" aria-hidden="true">♡</span><span class="card-number">01</span><h3>Connection & companionship</h3><p>Someone to share a story, enjoy a favorite pastime, and bring more connection to the everyday.</p><a href="#contact" data-care="companionship">Let’s talk companionship <span aria-hidden="true">↗</span></a></article>
+        <article class="care-card reveal"><span class="card-icon" aria-hidden="true">☀</span><span class="card-number">02</span><h3>Help with daily routines</h3><p>Talk with us about support with the little things that help home feel comfortable and daily life feel manageable.</p><a href="#contact" data-care="daily routines">Let’s talk daily support <span aria-hidden="true">↗</span></a></article>
+        <article class="care-card reveal"><span class="card-icon" aria-hidden="true">⌂</span><span class="card-number">03</span><h3>Support for the whole family</h3><p>A space to discuss your loved one’s needs, your family’s routines, and the support you’re looking for.</p><a href="#contact" data-care="family support">Let’s talk family support <span aria-hidden="true">↗</span></a></article>
+      </div>
+    </section>
+    <section id="approach" class="approach section-wrap section-space">
+      <div class="approach-intro reveal"><p class="eyebrow">PEOPLE FIRST. ALWAYS.</p><h2>Good care starts<br />with <em>listening.</em></h2><p>You know your loved one best. We start there—with their story, their preferences, and the things that make them feel at home.</p><a class="text-link" href="#contact">Tell us your story <span aria-hidden="true">↗</span></a></div>
+      <div class="steps"><div class="step reveal"><span>01</span><div><h3>Let’s get to know you</h3><p>Share what’s on your mind and what kind of help you’re considering.</p></div></div><div class="step reveal"><span>02</span><div><h3>Talk through the possibilities</h3><p>We’ll discuss your needs, answer your questions, and explore what might fit.</p></div></div><div class="step reveal"><span>03</span><div><h3>Take the next step, together</h3><p>Get clarity on your options so you can make a decision that feels right for your family.</p></div></div></div>
+    </section>
+    <section id="questions" class="faq-section section-wrap section-space"><div class="reveal"><p class="eyebrow">A LITTLE CLARITY</p><h2>It’s natural to<br />have <em>questions.</em></h2></div><div class="faq-list reveal"><details><summary>Where do I begin?<span aria-hidden="true">+</span></summary><p>Start with the form below. Tell us a little about the support you’re looking for and how to reach you. You don’t need to have everything figured out.</p></details><details><summary>Can I reach out on behalf of a loved one?<span aria-hidden="true">+</span></summary><p>Absolutely. Family members and loved ones are welcome to get in touch. Share your own contact information so we can follow up with you.</p></details><details><summary>How can I check availability in my area?<span aria-hidden="true">+</span></summary><p>Include your Delaware town or area in your message. We’ll discuss location, scheduling, and whether we can support the care you’re looking for.</p></details><details><summary>What if I’m unsure what care is needed?<span aria-hidden="true">+</span></summary><p>That’s a good reason to start a conversation. Tell us about the everyday challenges you’ve noticed and the questions you have.</p></details></div></section>
+    <section id="contact" class="contact-section section-wrap section-space">
+      <div class="contact-copy reveal"><p class="eyebrow">YOUR NEXT CHAPTER STARTS WITH A HELLO</p><h2>Let’s bring a little<br />more comfort <em>home.</em></h2><p>Whether you’re exploring options or ready for a helping hand, we’d love to hear from you.</p><div class="contact-signature"><img src="assets/home-sweet-home-logo.png" alt="" width="82" height="82" /><span>Home Sweet Home Care<b>With heart. Here in Delaware.</b></span></div></div>
+      <form id="contact-form" class="contact-form"><h3>Tell us how we can help</h3><p>Leave your details and we’ll be in touch.</p><div class="form-row"><div class="field"><label for="name">Full name <span>*</span></label><input id="name" name="fullName" autocomplete="name" maxlength="150" placeholder="Your full name" required /></div><div class="field"><label for="phone">Phone number <span>*</span></label><input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="50" placeholder="Your phone number" required /></div></div><div class="field"><label for="email">Email address <span>*</span></label><input id="email" name="email" type="email" autocomplete="email" maxlength="200" placeholder="you@example.com" required /></div><div class="field"><label for="message">How can we help? <span>*</span></label><textarea id="message" name="message" maxlength="2000" placeholder="Tell us a little about the support you’re looking for…" required></textarea></div><p class="form-note">Please keep your message general and leave out sensitive medical information.</p><button class="button" type="submit">Start the conversation <span aria-hidden="true">↗</span></button><p id="form-status" role="status" aria-live="polite"></p></form>
+    </section>
+  </main>
+  <footer class="section-wrap"><a class="footer-brand" href="#">Home Sweet Home <span>Care</span></a><p>Comfort. Connection. A place to call home.</p><span>© <span id="year">2026</span> Home Sweet Home Care</span></footer>
+</body>
 </html>
