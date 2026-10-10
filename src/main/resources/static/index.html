@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home Sweet Home Care</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/scheduling.html">Scheduling</a>
+        <a href="/services.html">Services</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/admin.html">Admin</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="card">
+        <h1>Home Sweet Home Care</h1>
+        <p>
+          Compassionate in-home support tailored to your family. Share your details below and our team will contact you shortly.
+        </p>
+
+        <form id="contact-form">
+          <label for="fullName">Name</label>
+          <input id="fullName" name="fullName" type="text" maxlength="150" required />
+
+          <label for="phone">Phone Number</label>
+          <input id="phone" name="phone" type="tel" maxlength="50" />
+
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" maxlength="200" required />
+
+          <label for="message">Message</label>
+          <textarea id="message" name="message" maxlength="2000" required></textarea>
+
+          <button type="submit">Send Message</button>
+          <p id="form-status" class="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById("contact-form");
+      const status = document.getElementById("form-status");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        status.textContent = "Sending...";
+        status.className = "status";
+
+        const payload = {
+          fullName: form.fullName.value.trim(),
+          phone: form.phone.value.trim(),
+          email: form.email.value.trim(),
+          message: form.message.value.trim(),
+        };
+
+        try {
+          const response = await fetch("/api/collected-data", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(data.message || "Unable to submit the form.");
+          }
+
+          status.textContent = data.message || "Thanks, your request was submitted.";
+          status.className = "status success";
+          form.reset();
+        } catch (error) {
+          status.textContent = error.message || "Unable to submit the form.";
+          status.className = "status error";
+        }
+      });
+    </script>
+  </body>
+</html>
