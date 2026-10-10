@@ -29,6 +29,10 @@ The app starts on `http://localhost:8080` and stores data in `data/collected-dat
 
 `POST /api/collected-data`
 
+Before posting, fetch a human verification challenge:
+
+`GET /api/human-verification/challenge`
+
 Request body:
 
 ```json
@@ -36,11 +40,13 @@ Request body:
   "fullName": "Jane Doe",
   "email": "jane@example.com",
   "phone": "555-1234",
-  "message": "I need help with home care services."
+  "message": "I need help with home care services.",
+  "humanVerificationToken": "<token from challenge endpoint>",
+  "humanVerificationAnswer": "9"
 }
 ```
 
-Response includes whether a confirmation email was sent.
+Submissions require a valid human-verification response, and email validity is checked before data is stored. Response includes whether a confirmation email was sent.
 
 ### List contact submissions (admin)
 
@@ -60,5 +66,11 @@ Set these environment variables for production:
 - `MAIL_PASSWORD`
 - `MAIL_SMTP_AUTH`
 - `MAIL_SMTP_STARTTLS`
+- `HUMAN_VERIFICATION_SECRET`
 
 If SMTP is unavailable, submissions are still saved and the API reports that confirmation email sending failed.
+
+## Live deployment safety notes
+
+- Set strong values for `ADMIN_API_KEY` and `HUMAN_VERIFICATION_SECRET` before exposing the site publicly.
+- API error responses are normalized to JSON messages so malformed/invalid requests do not surface unstable server errors to clients.

@@ -70,13 +70,18 @@
           const rows = await response.json();
           rows.forEach((row) => {
             const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${row.submittedAt ?? ""}</td>
-              <td>${row.fullName ?? ""}</td>
-              <td>${row.email ?? ""}</td>
-              <td>${row.phone ?? ""}</td>
-              <td>${row.message ?? ""}</td>
-            `;
+            const cells = [
+              row.submittedAt ?? "",
+              row.fullName ?? "",
+              row.email ?? "",
+              row.phone ?? "",
+              row.message ?? "",
+            ];
+            cells.forEach((value) => {
+              const td = document.createElement("td");
+              td.textContent = value;
+              tr.appendChild(td);
+            });
             tableBody.appendChild(tr);
           });
 
