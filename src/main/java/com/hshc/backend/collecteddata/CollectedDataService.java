@@ -11,22 +11,22 @@ public class CollectedDataService {
 
     private final CollectedDataRepository repository;
     private final ConfirmationEmailService confirmationEmailService;
-    private final HumanVerificationService humanVerificationService;
+    private final RecaptchaService recaptchaService;
     private final EmailValidationService emailValidationService;
 
     public CollectedDataService(CollectedDataRepository repository,
                                 ConfirmationEmailService confirmationEmailService,
-                                HumanVerificationService humanVerificationService,
+                                RecaptchaService recaptchaService,
                                 EmailValidationService emailValidationService) {
         this.repository = repository;
         this.confirmationEmailService = confirmationEmailService;
-        this.humanVerificationService = humanVerificationService;
+        this.recaptchaService = recaptchaService;
         this.emailValidationService = emailValidationService;
     }
 
     public CollectedDataSubmissionResult save(CollectedDataRequest request) {
-        if (!humanVerificationService.isValid(request.humanVerificationToken(), request.humanVerificationAnswer())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Human verification failed. Please try again.");
+        if (!recaptchaService.isValid(request.recaptchaToken())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Please complete reCAPTCHA again and resend your message.");
         }
 
         String normalizedEmail = request.email().trim();

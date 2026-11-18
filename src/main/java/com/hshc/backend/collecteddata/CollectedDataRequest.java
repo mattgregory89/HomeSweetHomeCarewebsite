@@ -9,7 +9,6 @@ public record CollectedDataRequest(
         @NotBlank @Email @Size(max = 200) String email,
         @Size(max = 50) String phone,
         @NotBlank @Size(max = 2000) String message,
-        @NotBlank @Size(max = 500) String humanVerificationToken,
-        @NotBlank @Size(max = 50) String humanVerificationAnswer
+        @NotBlank(message = "Please complete reCAPTCHA.") @Size(max = 4096) String recaptchaToken
 ) {
 }

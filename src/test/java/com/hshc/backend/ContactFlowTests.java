@@ -1,6 +1,14 @@
 package com.hshc.backend;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.MediaType;
+import com.hshc.backend.collecteddata.RecaptchaService;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hshc.backend.collecteddata.CollectedDataRepository;
 import com.hshc.backend.collecteddata.AdminCollectedDataController;
@@ -21,12 +29,27 @@ class ContactFlowTests {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
     @Autowired CollectedDataRepository repository;
+    @Autowired RestTemplate recaptchaRestTemplate;
+    MockRestServiceServer google;
+
+    @BeforeEach
+    void setupGoogle() { google = MockRestServiceServer.bindTo(recaptchaRestTemplate).build(); }
+    @AfterEach
+    void checkGoogle() { google.verify(); }
+
+    void expectVerification(boolean success) {
+        google.expect(requestTo("https://www.google.com/recaptcha/api/siteverify"))
+            .andExpect(method(org.springframework.http.HttpMethod.POST))
+            .andExpect(org.springframework.test.web.client.match.MockRestRequestMatchers.content().string(containsString("secret=test-secret-key")))
+            .andExpect(org.springframework.test.web.client.match.MockRestRequestMatchers.content().string(containsString("response=")))
+            .andRespond(withSuccess("{\"success\":" + success + "}", MediaType.APPLICATION_JSON));
+    }
 
     @Test
     void landingAndSupportingPagesArePackaged() throws Exception {
         mvc.perform(get("/index.html")).andExpect(status().isOk())
             .andExpect(content().string(containsString("like <em>home.</em>")))
-            .andExpect(content().string(containsString("humanVerificationAnswer")))
+            .andExpect(content().string(containsString("recaptcha-widget")))
             .andExpect(content().string(containsString("assistant-input")));
         for (String path : new String[]{"/styles.css", "/script.js", "/assets/home-sweet-home-logo.png",
                 "/services.html", "/scheduling.html", "/faq.html", "/admin.html"}) {
@@ -36,15 +59,12 @@ class ContactFlowTests {
 
     @Test
     void validInquiryIsSavedEvenWhenSmtpIsUnavailable() throws Exception {
-        JsonNode challenge = json.readTree(mvc.perform(get("/api/human-verification/challenge"))
-            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        String[] numbers = challenge.get("prompt").asText().replaceAll("[^0-9]+", " ").trim().split(" +");
-        String answer = String.valueOf(Integer.parseInt(numbers[0]) + Integer.parseInt(numbers[1]));
+        expectVerification(true);
         long before = repository.count();
         mvc.perform(post("/api/collected-data").contentType("application/json")
             .content(json.writeValueAsString(Map.of("fullName", "Test Visitor", "email", "visitor@example.com",
                 "phone", "555-0100", "message", "Please discuss companionship.",
-                "humanVerificationToken", challenge.get("token").asText(), "humanVerificationAnswer", answer))))
+                "recaptchaToken", "valid-google-token"))))
             .andExpect(status().isCreated()).andExpect(jsonPath("confirmationEmailSent").value(false))
             .andExpect(jsonPath("id").isNumber());
         assertEquals(before + 1, repository.count());
@@ -56,10 +76,11 @@ class ContactFlowTests {
 
     @Test
     void badVerificationAndMalformedRequestsDoNotSave() throws Exception {
+        expectVerification(false);
         long before = repository.count();
         mvc.perform(post("/api/collected-data").contentType("application/json")
             .content(json.writeValueAsString(Map.of("fullName", "Test", "email", "test@example.com", "message", "Hello",
-                "humanVerificationToken", "invalid", "humanVerificationAnswer", "1"))))
+                "recaptchaToken", "invalid"))))
             .andExpect(status().isBadRequest()).andExpect(jsonPath("message").exists());
         mvc.perform(post("/api/collected-data").contentType("application/json").content("{"))
             .andExpect(status().isBadRequest()).andExpect(jsonPath("message").exists());
@@ -70,5 +91,32 @@ class ContactFlowTests {
     void unsetAdminKeyDisablesAccess() {
         var controller = new AdminCollectedDataController(null, "");
         assertThrows(org.springframework.web.server.ResponseStatusException.class, () -> controller.list("change-me"));
+    }
+
+    @Test
+    void configExposesOnlySiteKey() throws Exception {
+        mvc.perform(get("/api/recaptcha/config")).andExpect(status().isOk())
+            .andExpect(jsonPath("siteKey").value("test-site-key"))
+            .andExpect(jsonPath("secretKey").doesNotExist());
+    }
+
+    @Test
+    void missingKeysPreventVerification() {
+        var service = new RecaptchaService(recaptchaRestTemplate, "", "");
+        var error = assertThrows(org.springframework.web.server.ResponseStatusException.class,
+            () -> service.isValid("token"));
+        assertEquals(503, error.getStatusCode().value());
+    }
+
+    @Test
+    void googleFailureDoesNotSaveInquiry() throws Exception {
+        google.expect(requestTo("https://www.google.com/recaptcha/api/siteverify"))
+            .andRespond(withServerError());
+        long before = repository.count();
+        mvc.perform(post("/api/collected-data").contentType("application/json")
+            .content(json.writeValueAsString(Map.of("fullName", "Test", "email", "test@example.com",
+                "message", "Hello", "recaptchaToken", "token"))))
+            .andExpect(status().isServiceUnavailable()).andExpect(jsonPath("message").exists());
+        assertEquals(before, repository.count());
     }
 }

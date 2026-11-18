@@ -36,31 +36,64 @@ document.querySelectorAll('[data-care]').forEach(link => {
     if (!message.value.trim()) message.value = `I’d like to learn more about ${link.dataset.care}. `;
   });
 });
-const humanPrompt = document.querySelector('#human-prompt');
-const humanToken = document.querySelector('#human-token');
-const humanAnswer = document.querySelector('#human-answer');
 const verificationStatus = document.querySelector('#verification-status');
-const verificationRefresh = document.querySelector('#verification-refresh');
-async function loadHumanChallenge() {
-  humanToken.value = '';
-  humanAnswer.value = '';
-  verificationRefresh.disabled = true;
+const verificationRetry = document.querySelector('#verification-retry');
+let recaptchaWidgetId = null;
+let recaptchaLoading = false;
+let recaptchaScriptPromise;
+function loadRecaptchaScript() {
+  if (window.grecaptcha?.render) return Promise.resolve();
+  if (recaptchaScriptPromise) return recaptchaScriptPromise;
+  recaptchaScriptPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => fail(), 15000);
+    function fail() {
+      clearTimeout(timeout);
+      script.remove();
+      recaptchaScriptPromise = null;
+      reject(new Error('reCAPTCHA could not load. Check your connection or content blocker and retry.'));
+    }
+    window.onRecaptchaLoaded = () => { clearTimeout(timeout); resolve(); };
+    script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit';
+    script.async = true;
+    script.defer = true;
+    script.onerror = fail;
+    document.head.appendChild(script);
+  });
+  return recaptchaScriptPromise;
+}
+async function loadRecaptcha() {
+  if (recaptchaLoading || recaptchaWidgetId !== null) return;
+  recaptchaLoading = true;
+  verificationRetry.hidden = true;
   verificationStatus.textContent = 'Loading verification…';
   try {
-    const response = await fetch('/api/human-verification/challenge', { cache: 'no-store' });
-    const data = await response.json();
-    if (!response.ok || !data.token || !data.prompt) throw new Error('Challenge unavailable');
-    humanPrompt.textContent = `Quick verification: ${data.prompt}`;
-    humanToken.value = data.token;
+    if (location.protocol === 'file:') {
+      throw new Error('Open this site at http://localhost:8080 with the app running to use the contact form.');
+    }
+    const response = await fetch('/api/recaptcha/config', { cache: 'no-store' });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.siteKey) {
+      throw new Error(data?.message || 'Contact verification is unavailable. Open the site through the running app at http://localhost:8080.');
+    }
+    await loadRecaptchaScript();
+    recaptchaWidgetId = window.grecaptcha.render('recaptcha-widget', {
+      sitekey: data.siteKey,
+      size: window.matchMedia('(max-width: 420px)').matches ? 'compact' : 'normal',
+      callback: () => { verificationStatus.textContent = ''; },
+      'expired-callback': () => { verificationStatus.textContent = 'Verification expired. Please check reCAPTCHA again.'; },
+      'error-callback': () => { verificationStatus.textContent = 'reCAPTCHA encountered a connection error. Please try again.'; }
+    });
     verificationStatus.textContent = '';
-  } catch {
-    verificationStatus.textContent = 'Unable to load verification. Check your connection and get a new question.';
+  } catch (error) {
+    verificationStatus.textContent = error.message || 'Unable to load verification. Please retry.';
+    verificationRetry.hidden = false;
   } finally {
-    verificationRefresh.disabled = false;
+    recaptchaLoading = false;
   }
 }
-verificationRefresh.addEventListener('click', loadHumanChallenge);
-loadHumanChallenge();
+verificationRetry.addEventListener('click', loadRecaptcha);
+loadRecaptcha();
 form.addEventListener('submit', async event => {
   event.preventDefault();
   const button = form.querySelector('button[type="submit"]');
@@ -74,14 +107,14 @@ form.addEventListener('submit', async event => {
     status.textContent = 'Please complete each field before sending your message.';
     return;
   }
-  if (!payload.humanVerificationToken) {
+  delete payload['g-recaptcha-response'];
+  payload.recaptchaToken = recaptchaWidgetId !== null ? window.grecaptcha.getResponse(recaptchaWidgetId) : '';
+  if (!payload.recaptchaToken) {
     status.className = 'error';
-    status.textContent = 'Please get a verification question before sending.';
-    await loadHumanChallenge();
+    status.textContent = 'Please complete reCAPTCHA before sending.';
     return;
   }
   button.disabled = true;
-  verificationRefresh.disabled = true;
   button.textContent = 'Sending your message…';
   status.className = '';
   status.textContent = '';
@@ -99,7 +132,7 @@ form.addEventListener('submit', async event => {
     status.className = 'error';
     status.textContent = `${error.message || 'Unable to send your message.'} Your details are still here.`;
   } finally {
-    await loadHumanChallenge();
+    if (recaptchaWidgetId !== null) window.grecaptcha.reset(recaptchaWidgetId);
     button.disabled = false;
     button.innerHTML = 'Start the conversation <span aria-hidden="true">↗</span>';
   }
@@ -168,3 +201,26 @@ const assistantSend = document.querySelector("#assistant-send");
 
 
 addAssistantMessage("Assistant: Hi! Ask me about services, scheduling, or FAQs.", "bot");
+
+const assistantToggle = document.querySelector('#assistant-toggle');
+const assistantPanel = document.querySelector('#assistant-panel');
+const assistantClose = document.querySelector('#assistant-close');
+function setAssistantOpen(open) {
+  assistantPanel.hidden = !open;
+  assistantToggle.setAttribute('aria-expanded', String(open));
+  assistantToggle.setAttribute('aria-label', open ? 'Close Care Assistant' : 'Open Care Assistant');
+  if (open) {
+    assistantMessages.scrollTop = assistantMessages.scrollHeight;
+    assistantInput.focus();
+  } else {
+    assistantToggle.focus();
+  }
+}
+assistantToggle.addEventListener('click', () => setAssistantOpen(assistantPanel.hidden));
+assistantClose.addEventListener('click', () => setAssistantOpen(false));
+assistantPanel.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    setAssistantOpen(false);
+  }
+});
